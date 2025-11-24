@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lista de Tareas (DevOps TPI)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+    .task-completed { text-decoration: line-through; color: #9ca3af; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-8">
+    <h1 class="text-4xl font-extrabold text-center mb-6 text-gray-800">Lista de Tareas TPI</h1>
+    <p class="text-center text-sm text-gray-500 mb-8">Backend: Flask • Persistencia: PostgreSQL.</p>
+
+    <!-- Formulario para Añadir Tarea (POST) -->
+    <form method="POST" action="{{ url_for('add_task') }}" class="flex mb-8 space-x-3" autocomplete="off">
+      {# Si usas CSRF (Flask-WTF), incluí el token: {{ csrf_token() }} #}
+      <input type="text" name="description" placeholder="Descripción de la nueva tarea..." required
+             class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+             aria-label="Nueva tarea">
+      <button type="submit"
+              class="px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out shadow-md"
+              aria-label="Añadir tarea">
+        Añadir
+      </button>
+    </form>
+
+    <!-- Lista de Tareas -->
+    <div class="space-y-3">
+      {% if tasks %}
+        {% for task in tasks %}
+          <div class="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition duration-200">
+
+            <!-- Texto de la tarea (clase condicional) -->
+            <span title="ID: {{ task[0] }}"
+                  class="flex-grow text-lg font-medium {{ 'task-completed' if task[2] else 'text-gray-700' }}">
+              {{ task[1] }}
+            </span>
+
+            <!-- Acciones: usar formularios POST para mutaciones -->
+            <div class="flex space-x-2 ml-4">
+
+              <!-- Completar / Revertir (POST) -->
+              <form method="POST" action="{{ url_for('complete_task', task_id=task[0]) }}">
+                {# {{ csrf_token() }} si corresponde #}
+                <button type="submit"
+                        class="p-2 rounded-full text-white transition duration-150 ease-in-out
+                               {{ 'bg-yellow-500 hover:bg-yellow-600' if task[2] else 'bg-green-500 hover:bg-green-600' }}"
+                        aria-label="{{ 'Revertir tarea' if task[2] else 'Marcar como completada' }}"
+                        title="{{ 'Revertir tarea' if task[2] else 'Marcar como completada' }}">
+                  {% if task[2] %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 13m4.025 8l-4.025-4m0 0l4.025-4M4 13h16"></path></svg>
+                  {% else %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  {% endif %}
+                </button>
+              </form>
+
+              <!-- Eliminar (POST) -->
+              <form method="POST" action="{{ url_for('delete_task', task_id=task[0]) }}"
+                    onsubmit="return confirm('¿Seguro que querés eliminar esta tarea?');">
+                {# {{ csrf_token() }} si corresponde #}
+                <button type="submit" class="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-150 ease-in-out"
+                        aria-label="Eliminar tarea" title="Eliminar tarea">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                       xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              </form>
+
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-center py-8 text-gray-500 italic border-2 border-dashed border-gray-300 rounded-lg">
+          ¡No hay tareas añadidas! Usa el formulario de arriba para empezar.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+</html>
