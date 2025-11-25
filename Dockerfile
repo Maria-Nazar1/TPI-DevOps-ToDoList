@@ -5,6 +5,14 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /usr/src/app
 
+# Instalar dependencias del sistema necesarias para psycopg2
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    libpq-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -27,6 +35,11 @@ RUN pytest -v
 FROM python:3.11-slim
 
 WORKDIR /usr/src/app
+
+# Dependencias mínimas necesarias para psycopg2
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
