@@ -1,42 +1,47 @@
-version: v1
-
 services:
-  # ----------------------------------------------------------------------
-  # 1. BASE DE DATOS POSTGRES GESTIONADA POR RENDER
-  # ----------------------------------------------------------------------
-  - type: pserv
-    name: todolist-db-service
-    plan: starter
-    env: postgres
-    databaseName: todolistdb
-    user: admin
-
-  # ----------------------------------------------------------------------
-  # 2. SERVICIO WEB (Flask)
-  # ----------------------------------------------------------------------
   - type: web
-    name: flask-todolist-app
+    name: flask-todolist
+    runtime: docker
+    repo: https://github.com/tu_usuario/tu_repo
     branch: main
-    startCommand: "python app.py"
-    port: 5000
-    autoDeploy: true
-    healthCheckPath: /health
-
+    plan: starter
     envVars:
       - key: DB_HOST
         fromService:
-          name: todolist-db-service
-          type: pserv
+          name: flask-postgres
+          type: postgres
           property: host
 
       - key: DB_NAME
-        value: todolistdb
+        fromService:
+          name: flask-postgres
+          type: postgres
+          property: database
 
       - key: DB_USER
-        value: admin
+        fromService:
+          name: flask-postgres
+          type: postgres
+          property: user
 
       - key: DB_PASSWORD
         fromService:
-          name: todolist-db-service
-          type: pserv
+          name: flask-postgres
+          type: postgres
           property: password
+
+      - key: FLASK_ENV
+        value: production
+
+    # El puerto expuesto en el Dockerfile es 8000
+    envVars:
+      - key: PORT
+        value: "8000"
+
+    healthCheckPath: /
+
+databases:
+  - name: flask-postgres
+    plan: free
+    databaseName: todolistdb
+    user: admin
