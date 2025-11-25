@@ -1,0 +1,42 @@
+version: v1
+
+services:
+  # ----------------------------------------------------------------------
+  # 1. BASE DE DATOS POSTGRES GESTIONADA POR RENDER
+  # ----------------------------------------------------------------------
+  - type: pserv
+    name: todolist-db-service
+    plan: starter
+    env: postgres
+    databaseName: todolistdb
+    user: admin
+
+  # ----------------------------------------------------------------------
+  # 2. SERVICIO WEB (Flask)
+  # ----------------------------------------------------------------------
+  - type: web
+    name: flask-todolist-app
+    branch: main
+    startCommand: "python app.py"
+    port: 5000
+    autoDeploy: true
+    healthCheckPath: /health
+
+    envVars:
+      - key: DB_HOST
+        fromService:
+          name: todolist-db-service
+          type: pserv
+          property: host
+
+      - key: DB_NAME
+        value: todolistdb
+
+      - key: DB_USER
+        value: admin
+
+      - key: DB_PASSWORD
+        fromService:
+          name: todolist-db-service
+          type: pserv
+          property: password
